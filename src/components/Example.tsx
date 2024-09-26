@@ -1,139 +1,57 @@
-"use client"
-import { useMemo } from 'react';
-import { Box, Stack } from '@mantine/core';
-import {
-  MantineReactTable,
-  useMantineReactTable,
-  type MRT_ColumnDef,
-} from 'mantine-react-table';
-import { data, type Person } from './makeData';
+"use client";
+import React, { useMemo } from "react";
+import { MantineReactTable, useMantineReactTable } from "mantine-react-table";
+import dayjs from 'dayjs';
+import { ShoppingItems } from "@/types/shoppingItems";
+import data from "@/data/data";
 
-const Example = () => {
-  const averageSalary = useMemo(
-    () => data.reduce((acc, curr) => acc + curr.salary, 0) / data.length,
-    [],
-  );
+const Table = () => {
 
-  const maxAge = useMemo(
-    () => data.reduce((acc, curr) => Math.max(acc, curr.age), 0),
-    [],
-  );
+  // dynamically generate the columns based on the first entry of array items
+  const generateColumns = useMemo(() => {
+    return (data: ShoppingItems[]) => 
+      {
+      if (data.length === 0) return [];
+      const firstItem = data[0];
+      return Object.keys(firstItem).map((key) => ({
+        header: key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
+        accessorKey: key,
+        enableGrouping: key !== "id",
+      }));
+    };
+  }, []);
 
-  const columns = useMemo<MRT_ColumnDef<Person>[]>(
-    () => [
-      {
-        header: 'First Name',
-        accessorKey: 'firstName',
-        enableGrouping: false, 
-      },
-      {
-        header: 'Last Name',
-        accessorKey: 'lastName',
-      },
-      {
-        header: 'Age',
-        accessorKey: 'age',
-        aggregationFn: 'max', //show the max age in the group (lots of pre-built aggregationFns to choose from)
-        //required to render an aggregated cell
-        AggregatedCell: ({ cell, table }) => (
-          <>
-            Oldest by{' '}
-            {table.getColumn(cell.row.groupingColumnId ?? '').columnDef.header}:{' '}
-            <Box
-              sx={{ color: 'skyblue', display: 'inline', fontWeight: 'bold' }}
-            >
-              {cell.getValue<number>()}
-            </Box>
-          </>
-        ),
-        Footer: () => (
-          <Stack>
-            Max Age:
-            <Box color="orange">{Math.round(maxAge)}</Box>
-          </Stack>
-        ),
-      },
-      {
-        header: 'Gender',
-        accessorKey: 'gender',
-        //optionally, customize the cell render when this column is grouped. Make the text blue and pluralize the word
-        GroupedCell: ({ cell, row }) => (
-          <Box sx={{ color: 'skyblue' }}>
-            <strong>{cell.getValue<string>()}s </strong> ({row.subRows?.length})
-          </Box>
-        ),
-      },
-      {
-        header: 'State',
-        accessorKey: 'state',
-      },
-      {
-        header: 'Salary',
-        accessorKey: 'salary',
-        aggregationFn: 'mean',
-        AggregatedCell: ({ cell, table }) => (
-          <>
-            Average by{' '}
-            {table.getColumn(cell.row.groupingColumnId ?? '').columnDef.header}:{' '}
-            <Box sx={{ color: 'green', fontWeight: 'bold' }}>
-              {cell.getValue<number>()?.toLocaleString?.('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
-            </Box>
-          </>
-        ),
-        
-        Cell: ({ cell }) => (
-          <>
-            {cell.getValue<number>()?.toLocaleString?.('en-US', {
-              style: 'currency',
-              currency: 'USD',
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            })}
-          </>
-        ),
-       
-        Footer: () => (
-          <Stack>
-            Average Salary:
-            <Box color="orange">
-              {averageSalary?.toLocaleString?.('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
-            </Box>
-          </Stack>
-        ),
-      },
-    ],
-    [averageSalary, maxAge],
-  );
+  // formatting the dates before passing the data to the table
+  const formatData = useMemo(() => {
+    return (data: ShoppingItems[]): ShoppingItems[] =>
+      data.map((entry) => ({
+        ...entry,
+        createdAt: dayjs(entry.createdAt).format('YYYY-MM-DD'),
+        updatedAt: dayjs(entry.updatedAt).format('YYYY-MM-DD'),
+      }));
+  }, []);
+
+  // Memoize columns and formatted data to prevent unnecessary recalculations
+  const columns = useMemo(() => generateColumns(data), [generateColumns]);
+  const formattedData = useMemo(() => formatData(data), [formatData]);
 
   const table = useMantineReactTable({
     columns,
-    data,
+    data: formattedData,
     enableColumnResizing: true,
     enableGrouping: true,
     enableStickyHeader: true,
     enableStickyFooter: true,
     initialState: {
-      density: 'xs',
+      density: "xs",
       expanded: true,
-      grouping: ['state'],
       pagination: { pageIndex: 0, pageSize: 20 },
-      sorting: [{ id: 'state', desc: false }],
     },
-    mantineToolbarAlertBannerBadgeProps: { color: 'blue', variant: 'outline' },
+    mantineToolbarAlertBannerBadgeProps: { color: "blue", variant: "outline" },
     mantineTableContainerProps: { sx: { maxHeight: 700 } },
   });
 
   return <MantineReactTable table={table} />;
 };
 
-export default Example;
+export default Table;
