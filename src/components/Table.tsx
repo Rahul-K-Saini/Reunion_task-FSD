@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useMemo, useCallback } from "react";
-import { MantineReactTable, useMantineReactTable, 
-  type MRT_Row, } from "mantine-react-table";
+import { MantineReactTable, useMantineReactTable } from "mantine-react-table";
 
 
 import {
@@ -145,15 +144,17 @@ const Table: React.FC = () => {
   );
 
   const filterFns = {
-    priceRangeFilter: (row:MRT_Row, _columnId:string, filterValue: [number, number]) => {
-      const price = row.getValue('price') as number;
-      return price >= filterValue[0] && price <= filterValue[1];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    priceRangeFilter: (row: any, _columnId: string, filterValue: [number, number]) => {
+        const price = row.getValue('price') as number;
+        return price >= filterValue[0] && price <= filterValue[1];
     },
-    textFilter: (row:MRT_Row, _columnId:string, filterValue: string) => {
-      const name = row.getValue('name') as string;
-      return name.toLowerCase().includes(filterValue.toLowerCase());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    textFilter: (row: any, _columnId: string, filterValue: string) => {
+        const name = row.getValue('name') as string;
+        return name.toLowerCase().includes(filterValue.toLowerCase());
     }
-  };
+};
 
   const table = useMantineReactTable({
     columns,
