@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useMemo, useCallback } from "react";
-import { MantineReactTable, useMantineReactTable } from "mantine-react-table";
+import { MantineReactTable, useMantineReactTable, MRT_FilterFn, MRT_Row } from "mantine-react-table";
 import {
   Box,
   ActionIcon,
@@ -112,9 +112,9 @@ const Table: React.FC = () => {
   const [isSortingOpen, setIsSortingOpen] = useState(false);
   const [isColumnVisibilityOpen, setIsColumnVisibilityOpen] = useState(false);
   const [sortStates, setSortStates] = useState<Record<string, 'asc' | 'desc' | null>>({});
-  const [priceRange, setPriceRange] = useState<[number, number]>([10, 1000]);
-  const [salePriceRange, setSalePriceRange] = useState<[number, number]>([10, 1000]);
- 
+  const [priceRange, setPriceRange] = useState<[number, number]>([10, 100]);
+  const [salePriceRange, setSalePriceRange] = useState<[number, number]>([10, 100]);
+
 
   const columns = useMemo(() => {
     if (data.length === 0) return [];
@@ -141,7 +141,7 @@ const Table: React.FC = () => {
     []
   );
 
-  const filterFns = {
+  const filterFns: Record<string, MRT_FilterFn<any>> = {
     priceRangeFilter: (row, _columnId, filterValue: [number, number]) => {
       const price = row.getValue<number>('price');
       return price >= filterValue[0] && price <= filterValue[1];
@@ -280,7 +280,7 @@ const Table: React.FC = () => {
               <Box key={column.accessorKey}>
                 <label>{column.header}</label>
                 <RangeSlider
-                  label={(value) => `$${value}`}
+                  label={(value) => `${value}`}
                   min={10}
                   max={1000}
                   step={1}
@@ -297,7 +297,7 @@ const Table: React.FC = () => {
               <Box key={column.accessorKey}>
                 <label>{column.header}</label>
                 <RangeSlider
-                  label={(value) => `$${value}`}
+                  label={(value) => `${value}`}
                   min={10}
                   max={1000}
                   step={1}
@@ -316,7 +316,7 @@ const Table: React.FC = () => {
                 label={column.header}
                 placeholder={`Filter by ${column.header}`}
                 data={[
-                  ...new Set(formattedData.map((item) => item[column.accessorKey])),
+                  ...new Set(formattedData.map((item) => item[column.accessorKey as keyof typeof item])),
                 ].map(String)}
                 onChange={(value) =>
                   table.getColumn(column.accessorKey)?.setFilterValue(value)
@@ -355,7 +355,7 @@ const Table: React.FC = () => {
             { value: "subcategory", label: "SubCategory" },
           ]}
           value={groupingColumn}
-          onChange={setGroupingColumn}
+          onChange={(value) => setGroupingColumn(value || "")}
         />
         <Button
           onClick={handleClearGrouping}
