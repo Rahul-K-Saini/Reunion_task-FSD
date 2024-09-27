@@ -1,4 +1,4 @@
-import Table from "@/components/Example";
+import Table from "@/components/Table";
 import { Inter } from 'next/font/google'
  
 const inter = Inter({ subsets: ['latin'] })
