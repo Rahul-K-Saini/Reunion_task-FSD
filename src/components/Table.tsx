@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useMemo, useCallback } from "react";
-import { MantineReactTable, useMantineReactTable, MRT_FilterFn, MRT_Row } from "mantine-react-table";
+import { MantineReactTable, useMantineReactTable, 
+  type MRT_Row, } from "mantine-react-table";
+
+
 import {
   Box,
   ActionIcon,
@@ -141,13 +144,13 @@ const Table: React.FC = () => {
     []
   );
 
-  const filterFns: Record<string, MRT_FilterFn<any>> = {
-    priceRangeFilter: (row, _columnId, filterValue: [number, number]) => {
-      const price = row.getValue<number>('price');
+  const filterFns = {
+    priceRangeFilter: (row:MRT_Row, _columnId:string, filterValue: [number, number]) => {
+      const price = row.getValue('price') as number;
       return price >= filterValue[0] && price <= filterValue[1];
     },
-    textFilter: (row, _columnId, filterValue: string) => {
-      const name = row.getValue<string>('name');
+    textFilter: (row:MRT_Row, _columnId:string, filterValue: string) => {
+      const name = row.getValue('name') as string;
       return name.toLowerCase().includes(filterValue.toLowerCase());
     }
   };
@@ -315,9 +318,11 @@ const Table: React.FC = () => {
                 key={column.accessorKey}
                 label={column.header}
                 placeholder={`Filter by ${column.header}`}
-                data={[
-                  ...new Set(formattedData.map((item) => item[column.accessorKey as keyof typeof item])),
-                ].map(String)}
+                data={[...Array.from(
+                  new Set(
+                    formattedData.map((item) => item[column.accessorKey as keyof typeof item])
+                  )
+                )].map(String)}
                 onChange={(value) =>
                   table.getColumn(column.accessorKey)?.setFilterValue(value)
                 }
